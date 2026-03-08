@@ -1,0 +1,4 @@
+.env
+generated_question/*/*.json
+generated_question/*.json
+__pycache__
