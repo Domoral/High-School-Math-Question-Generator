@@ -1,5 +1,5 @@
 """
-Main entry point for Advanced Math Question Generator
+Main entry point for High School Math Question Generator
 
 Pipeline:
 1. Knowledge Selection (GUI) -> Select target knowledge points
@@ -19,15 +19,17 @@ def main():
     Main function to run the advanced math question generation system.
     """
     print("=" * 60)
-    print("高等数学综合题生成系统")
-    print("Advanced Math Question Generator")
+    print("高中数学综合题生成系统")
+    print("High School Math Question Generator")
     print("=" * 60)
     
     # Step 1: Knowledge Selection
     print("\n[步骤 1/3] 请选择需要综合的知识点...")
     print("[Step 1/3] Please select knowledge points to integrate...\n")
     
-    selected_knowledge = select_knowledge()
+    selection_result = select_knowledge()
+    selected_knowledge = selection_result.get('knowledge_points', [])
+    difficulty_range = selection_result.get('difficulty_range', (0.3, 0.7))
     
     if not selected_knowledge:
         print("未选择任何知识点，程序退出。")
@@ -38,6 +40,9 @@ def main():
     print(f"Selected {len(selected_knowledge)} knowledge points:")
     for i, kp in enumerate(selected_knowledge, 1):
         print(f"  {i}. {kp}")
+    
+    print(f"\n目标难度区间: {difficulty_range[0]:.1f} - {difficulty_range[1]:.1f}")
+    print(f"Target difficulty range: {difficulty_range[0]:.1f} - {difficulty_range[1]:.1f}")
     
     # Step 2: Initialize MCTS Root Node
     print("\n" + "=" * 60)
@@ -50,7 +55,8 @@ def main():
         question="",  # Root has no question yet
         integrated_knowledge=set(),  # No knowledge integrated yet
         waiting_knowledge=selected_knowledge,  # All selected knowledge waiting to be added
-        parent=None
+        parent=None,
+        difficulty_range=difficulty_range  # Pass difficulty range to root node
     )
     
     print(f"根节点创建完成")
@@ -70,7 +76,7 @@ def main():
     mcts = QuestionMCTS(
         exploration_weight=1.414,  # UCT exploration parameter (sqrt(2))
         alpha=0.5,  # Weight for current score in simulation
-        save_threshold=6.0,  # Minimum quality score to save question
+        save_threshold=8.5,  # Minimum quality score to save question
         output_dir="./generated_question"  # Directory to save generated questions
     )
     

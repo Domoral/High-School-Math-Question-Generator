@@ -1,5 +1,5 @@
 """
-LLM Client for Advanced Math Question Generation
+LLM Client for High School Math Question Generation
 
 This module provides functions to interact with DeepSeek API for:
 1. Generating integrated math problems (generator)
@@ -13,7 +13,7 @@ from typing import Optional, TYPE_CHECKING
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from prompt_templates_CN import prompt_templates
+from prompt_templates_HS import prompt_templates
 
 if TYPE_CHECKING:
     from question_node import QuestionNode
@@ -64,12 +64,17 @@ def generator(node: 'QuestionNode', new_skill: str, reference_examples: Optional
     if reference_examples is None:
         reference_examples = "No reference examples provided. Please use your knowledge to generate an appropriate problem."
     
+    # Get difficulty range from node
+    difficulty_min, difficulty_max = node.difficulty_range
+    difficulty_range_str = f"{difficulty_min:.1f} - {difficulty_max:.1f}"
+    
     # Format the prompt
     prompt = prompt_templates["question_generator"].format(
         existing_problem=existing_problem,
         existing_skills=existing_skills,
         new_skill=new_skill,
-        reference_examples=reference_examples
+        reference_examples=reference_examples,
+        difficulty_range=difficulty_range_str
     )
     
     print(f"[DEBUG] Prompt 长度: {len(prompt)}")
@@ -181,11 +186,16 @@ def verifier(node: 'QuestionNode', reference_examples: Optional[str] = None, max
     if reference_examples is None:
         reference_examples = "No reference examples provided. Please evaluate based on your knowledge of standard difficulty levels."
     
+    # Get difficulty range from node
+    difficulty_min, difficulty_max = node.difficulty_range
+    difficulty_range_str = f"{difficulty_min:.1f} - {difficulty_max:.1f}"
+    
     # Format the prompt
     prompt = prompt_templates["question_verifier"].format(
         problem_statement=problem_statement,
         required_skills=required_skills,
-        reference_examples=reference_examples
+        reference_examples=reference_examples,
+        difficulty_range=difficulty_range_str
     )
     
     print(f"[DEBUG] Prompt 长度: {len(prompt)}")
@@ -399,10 +409,13 @@ def parse_verifier_output(output: str) -> dict:
     dimensions = [
         ('1', '单一答案要求'),
         ('2', '精确答案要求'),
-        ('3', '双技能融合'),
-        ('4', '清晰性和完整性'),
-        ('5', '计算可行性'),
-        ('6', '语法和表达')
+        ('3', '知识点融合'),
+        ('4', '考纲符合性'),
+        ('5', '清晰性和完整性'),
+        ('6', '计算可行性'),
+        ('7', '语法和表达'),
+        ('8', '小问数量限制'),
+        ('9', '难度符合性')
     ]
     
     for num, name in dimensions:

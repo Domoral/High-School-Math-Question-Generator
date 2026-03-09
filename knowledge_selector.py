@@ -7,46 +7,73 @@ Uses tkinter for cross-platform compatibility.
 
 import tkinter as tk
 from tkinter import ttk, messagebox
-from typing import List, Dict, Set
+from typing import List, Dict, Set, Tuple, Optional
 
 
 # Default knowledge topology (prerequisite relationships)
 DEFAULT_KNOWLEDGE_TOPOLOGY = {
-    # 极限与连续
-    "数列极限": [],
-    "函数极限": ["数列极限"],
-    "无穷小比较": ["函数极限"],
-    "连续性": ["函数极限"],
+    # 集合与常用逻辑用语
+    "集合": [],
+    "常用逻辑用语": [],
     
-    # 微分学
-    "导数定义": ["函数极限"],
-    "求导法则": ["导数定义"],
-    "微分中值定理": ["导数定义", "连续性"],
-    "泰勒展开": ["微分中值定理"],
-    "函数性态分析": ["导数定义"],
-    "洛必达法则": ["导数定义"],
+    # 函数
+    "函数概念": [],
+    "函数性质": ["函数概念"],
+    "指数函数": ["函数概念"],
+    "对数函数": ["函数概念"],
+    "幂函数": ["函数概念"],
+    "函数零点": ["函数性质"],
     
-    # 积分学
-    "不定积分": ["求导法则"],
-    "定积分": ["不定积分", "连续性"],
-    "变限积分": ["定积分"],
-    "反常积分": ["定积分"],
-    "积分应用": ["定积分"],
+    # 三角函数
+    "三角函数概念": [],
+    "三角恒等变换": ["三角函数概念"],
+    "三角函数图像与性质": ["三角函数概念"],
+    "解三角形": ["三角恒等变换"],
     
-    # 级数
-    "数项级数": ["数列极限"],
-    "幂级数": ["数项级数", "泰勒展开"],
-    "傅里叶级数": ["定积分"],
+    # 平面向量
+    "平面向量概念": [],
+    "平面向量运算": ["平面向量概念"],
+    "平面向量应用": ["平面向量运算"],
     
-    # 微分方程
-    "一阶方程": ["不定积分"],
-    "高阶线性方程": ["一阶方程", "导数定义"],
+    # 复数
+    "复数概念": [],
+    "复数运算": ["复数概念"],
     
-    # 多元函数
-    "偏导数": ["导数定义"],
-    "重积分": ["定积分", "偏导数"],
-    "曲线积分": ["定积分", "偏导数"],
-    "曲面积分": ["重积分", "曲线积分"],
+    # 数列
+    "等差数列": [],
+    "等比数列": [],
+    "数列求和": ["等差数列", "等比数列"],
+    
+    # 不等式
+    "基本不等式": [],
+    "一元二次不等式": [],
+    "线性规划": [],
+    
+    # 立体几何
+    "空间几何体": [],
+    "空间点线面位置关系": ["空间几何体"],
+    "空间向量": ["平面向量运算"],
+    "空间向量应用": ["空间向量", "空间点线面位置关系"],
+    
+    # 解析几何
+    "直线与方程": [],
+    "圆与方程": ["直线与方程"],
+    "椭圆": ["圆与方程"],
+    "双曲线": ["圆与方程"],
+    "抛物线": ["圆与方程"],
+    
+    # 导数
+    "导数概念": ["函数概念"],
+    "导数运算": ["导数概念"],
+    "导数应用": ["导数运算", "函数性质"],
+    
+    # 计数原理与概率统计
+    "排列组合": [],
+    "二项式定理": ["排列组合"],
+    "概率": [],
+    "统计": [],
+    "随机变量及其分布": ["概率"],
+    "成对数据的统计分析": ["统计"],
 }
 
 
@@ -73,8 +100,12 @@ class KnowledgeSelector:
                     self.dependents[p].add(k)
         
         self.root = tk.Tk()
-        self.root.title("高数知识点选择器")
-        self.root.geometry("600x500")
+        self.root.title("高中数学知识点选择器")
+        self.root.geometry("700x700")
+        
+        # 难度区间设置 (默认 0.3-0.7，表示30%-70%的学生能做出)
+        self.difficulty_min: float = 0.3
+        self.difficulty_max: float = 0.7
         
         self._create_ui()
     
@@ -104,12 +135,17 @@ class KnowledgeSelector:
         
         # Organize knowledge points by category
         categories = {
-            "极限与连续": ["数列极限", "函数极限", "无穷小比较", "连续性"],
-            "微分学": ["导数定义", "求导法则", "微分中值定理", "泰勒展开", "函数性态分析", "洛必达法则"],
-            "积分学": ["不定积分", "定积分", "变限积分", "反常积分", "积分应用"],
-            "级数": ["数项级数", "幂级数", "傅里叶级数"],
-            "微分方程": ["一阶方程", "高阶线性方程"],
-            "多元函数": ["偏导数", "重积分", "曲线积分", "曲面积分"],
+            "预备知识": ["集合", "常用逻辑用语"],
+            "函数": ["函数概念", "函数性质", "指数函数", "对数函数", "幂函数", "函数零点"],
+            "三角函数": ["三角函数概念", "三角恒等变换", "三角函数图像与性质", "解三角形"],
+            "平面向量": ["平面向量概念", "平面向量运算", "平面向量应用"],
+            "复数": ["复数概念", "复数运算"],
+            "数列": ["等差数列", "等比数列", "数列求和"],
+            "不等式": ["基本不等式", "一元二次不等式", "线性规划"],
+            "立体几何": ["空间几何体", "空间点线面位置关系", "空间向量", "空间向量应用"],
+            "解析几何": ["直线与方程", "圆与方程", "椭圆", "双曲线", "抛物线"],
+            "导数": ["导数概念", "导数运算", "导数应用"],
+            "计数原理与概率统计": ["排列组合", "二项式定理", "概率", "统计", "随机变量及其分布", "成对数据的统计分析"],
         }
         
         self.checkboxes: Dict[str, tk.BooleanVar] = {}
@@ -143,9 +179,59 @@ class KnowledgeSelector:
         scrollbar.grid(row=1, column=0, sticky=(tk.W, tk.E))
         self.selected_text.configure(xscrollcommand=scrollbar.set)
         
+        # Difficulty setting area
+        difficulty_frame = ttk.LabelFrame(main_frame, text="难度区间设置（能做出该题的学生比例）", padding="10")
+        difficulty_frame.grid(row=3, column=0, pady=10, sticky=(tk.W, tk.E))
+        difficulty_frame.columnconfigure(0, weight=1)
+        
+        # Difficulty description
+        difficulty_desc = ttk.Label(
+            difficulty_frame, 
+            text="难度值越小表示题目越难，越大表示题目越简单\n建议：难题 0.1-0.3 | 中档题 0.3-0.7 | 简单题 0.7-0.9",
+            font=("Arial", 9),
+            foreground="gray"
+        )
+        difficulty_desc.grid(row=0, column=0, columnspan=4, pady=(0, 10), sticky=tk.W)
+        
+        # Min difficulty
+        ttk.Label(difficulty_frame, text="最小值（最难）:").grid(row=1, column=0, sticky=tk.W, padx=5)
+        self.min_difficulty_var = tk.DoubleVar(value=0.3)
+        self.min_difficulty_spin = ttk.Spinbox(
+            difficulty_frame, 
+            from_=0.0, 
+            to=1.0, 
+            increment=0.1,
+            textvariable=self.min_difficulty_var,
+            width=8,
+            command=self._on_difficulty_changed
+        )
+        self.min_difficulty_spin.grid(row=1, column=1, sticky=tk.W, padx=5)
+        
+        # Max difficulty
+        ttk.Label(difficulty_frame, text="最大值（最简单）:").grid(row=1, column=2, sticky=tk.W, padx=5)
+        self.max_difficulty_var = tk.DoubleVar(value=0.7)
+        self.max_difficulty_spin = ttk.Spinbox(
+            difficulty_frame, 
+            from_=0.0, 
+            to=1.0, 
+            increment=0.1,
+            textvariable=self.max_difficulty_var,
+            width=8,
+            command=self._on_difficulty_changed
+        )
+        self.max_difficulty_spin.grid(row=1, column=3, sticky=tk.W, padx=5)
+        
+        # Difficulty display
+        self.difficulty_display = ttk.Label(
+            difficulty_frame, 
+            text="当前设置: 0.3 - 0.7（中档题）",
+            font=("Arial", 10, "bold")
+        )
+        self.difficulty_display.grid(row=2, column=0, columnspan=4, pady=(10, 0), sticky=tk.W)
+        
         # Buttons
         button_frame = ttk.Frame(main_frame)
-        button_frame.grid(row=3, column=0, pady=10)
+        button_frame.grid(row=4, column=0, pady=10)
         
         ttk.Button(button_frame, text="全选", command=self._select_all).grid(row=0, column=0, padx=5)
         ttk.Button(button_frame, text="清空", command=self._clear_all).grid(row=0, column=1, padx=5)
@@ -200,6 +286,35 @@ class KnowledgeSelector:
         """Handle checkbox state change."""
         self._update_selected()
     
+    def _on_difficulty_changed(self):
+        """Handle difficulty range change."""
+        try:
+            min_val = float(self.min_difficulty_var.get())
+            max_val = float(self.max_difficulty_var.get())
+            
+            # Ensure min <= max
+            if min_val > max_val:
+                min_val, max_val = max_val, min_val
+                self.min_difficulty_var.set(min_val)
+                self.max_difficulty_var.set(max_val)
+            
+            self.difficulty_min = min_val
+            self.difficulty_max = max_val
+            
+            # Update display text
+            if max_val <= 0.3:
+                level = "难题"
+            elif min_val >= 0.7:
+                level = "简单题"
+            elif min_val >= 0.3 and max_val <= 0.7:
+                level = "中档题"
+            else:
+                level = "混合难度"
+            
+            self.difficulty_display.config(text=f"当前设置: {min_val:.1f} - {max_val:.1f}（{level}）")
+        except ValueError:
+            pass
+    
     def _select_all(self):
         """Select all knowledge points."""
         for var in self.checkboxes.values():
@@ -222,22 +337,31 @@ class KnowledgeSelector:
         sorted_selected = sorted(self.selected, 
                                key=lambda x: list(self.topology.keys()).index(x) if x in self.topology else 999)
         
-        self.result = sorted_selected
+        # Update difficulty values
+        self._on_difficulty_changed()
+        
+        # Return both knowledge points and difficulty range
+        self.result = {
+            'knowledge_points': sorted_selected,
+            'difficulty_range': (self.difficulty_min, self.difficulty_max)
+        }
         self.root.quit()
         self.root.destroy()
     
-    def run(self) -> List[str]:
+    def run(self) -> Dict:
         """
-        Run the GUI and return selected knowledge points.
+        Run the GUI and return selected knowledge points and difficulty range.
         
         Returns:
-            List of selected knowledge points in topological order
+            Dictionary containing:
+            - 'knowledge_points': List of selected knowledge points in topological order
+            - 'difficulty_range': Tuple of (min_difficulty, max_difficulty)
         """
         self.root.mainloop()
-        return getattr(self, 'result', [])
+        return getattr(self, 'result', {'knowledge_points': [], 'difficulty_range': (0.3, 0.7)})
 
 
-def select_knowledge(topology: Dict[str, List[str]] = None) -> List[str]:
+def select_knowledge(topology: Dict[str, List[str]] = None) -> Dict:
     """
     Convenience function to run the knowledge selector.
     
@@ -245,12 +369,16 @@ def select_knowledge(topology: Dict[str, List[str]] = None) -> List[str]:
         topology: Optional custom knowledge topology
         
     Returns:
-        List of selected knowledge points in topological order
+        Dictionary containing:
+        - 'knowledge_points': List of selected knowledge points in topological order
+        - 'difficulty_range': Tuple of (min_difficulty, max_difficulty)
         
     Example:
-        >>> selected = select_knowledge()
-        >>> print(selected)
-        ['不定积分', '定积分', '重积分']
+        >>> result = select_knowledge()
+        >>> print(result['knowledge_points'])
+        ['函数概念', '函数性质', '导数概念']
+        >>> print(result['difficulty_range'])
+        (0.3, 0.7)
     """
     selector = KnowledgeSelector(topology)
     return selector.run()

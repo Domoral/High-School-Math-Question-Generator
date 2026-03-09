@@ -1,8 +1,8 @@
 """
-MCTS Node implementation for Advanced Math Question Generation
+MCTS Node implementation for High School Math Question Generation
 
 This module defines the QuestionNode class used in the MCTS tree for generating
-integrated mathematics problems by progressively combining knowledge points.
+integrated high school mathematics problems by progressively combining knowledge points.
 """
 
 from typing import List, Optional, Set
@@ -31,7 +31,8 @@ class QuestionNode:
         question: str = "",
         integrated_knowledge: Optional[Set[str]] = None,
         waiting_knowledge: Optional[List[str]] = None,
-        parent: Optional['QuestionNode'] = None
+        parent: Optional['QuestionNode'] = None,
+        difficulty_range: Optional[tuple] = None
     ):
         """
         Initialize a QuestionNode.
@@ -41,11 +42,20 @@ class QuestionNode:
             integrated_knowledge: Set of knowledge points already in the question
             waiting_knowledge: Ordered list of knowledge points to be added
             parent: Parent node in the MCTS tree
+            difficulty_range: Tuple of (min_difficulty, max_difficulty) for target difficulty range
         """
         self.question = question
         self.integrated_knowledge = integrated_knowledge or set()
         self.waiting_knowledge = waiting_knowledge or []
         self.parent = parent
+        
+        # Difficulty range (inherited from parent if not specified)
+        if difficulty_range is not None:
+            self.difficulty_range = difficulty_range
+        elif parent is not None:
+            self.difficulty_range = parent.difficulty_range
+        else:
+            self.difficulty_range = (0.3, 0.7)  # Default range
         
         # MCTS statistics
         self.Q = 0.0  # Total reward (sum of quality scores)
